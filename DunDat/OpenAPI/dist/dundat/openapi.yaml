@@ -1,0 +1,270 @@
+openapi: 3.0.0
+info:
+  title: DunDat API
+  version: 1.0.0
+  contact:
+    name: Mark Rendle
+    email: mark@rendlelabs.com
+    url: https://rendlelabs.com/
+tags:
+  - name: Books
+    description: Completed books
+  - name: Authors
+    description: Book authors
+  - name: Distances
+    description: Runs, walks and bike rides
+  - name: Users
+    description: User-related operations
+security:
+  - auth0: []
+paths:
+  /read/books:
+    get:
+      operationId: GetBooks
+      summary: Get list of completed books
+      tags:
+        - Books
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOfBooks'
+              examples:
+                ListOfBooks:
+                  $ref: '#/components/examples/ListOfBooks'
+    post:
+      operationId: AddBook
+      summary: Add a completed book
+      tags:
+        - Books
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBook'
+            example:
+              title: The Hitchhiker's Guide to the Galaxy
+              author: Douglas Adams
+      responses:
+        '201':
+          $ref: '#/components/responses/201Created'
+        '400':
+          $ref: '#/components/responses/400'
+  /read/books/{id}:
+    get:
+      operationId: GetBook
+      summary: Get details of completed books
+      tags:
+        - Books
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+              examples:
+                H2G2:
+                  $ref: '#/components/examples/h2g2'
+                Mort:
+                  $ref: '#/components/examples/mort'
+  /distances:
+    get:
+      operationId: GetDistances
+      summary: Get list of distances
+      tags:
+        - Distances
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListOfDistances'
+    post:
+      operationId: AddDistance
+      summary: Add a new distance covered
+      tags:
+        - Distances
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                author:
+                  type: string
+              required:
+                - title
+                - author
+      responses:
+        '201':
+          $ref: '#/components/responses/201Created'
+        '400':
+          $ref: '#/components/responses/400'
+  /users:
+    put:
+      operationId: InitializeUser
+      summary: Initializes data storage for the user if necessary.
+      tags:
+        - Users
+      responses:
+        '200':
+          description: OK
+components:
+  examples:
+    ListOfBooks:
+      value:
+        - Id: '2349082309587230'
+          Title: The Hitchhiker's Guide to the Galaxy
+          Author: Douglas Adams
+        - Id: '2039854032984'
+          Title: Mort
+          Author: Terry Pratchett
+    h2g2:
+      value:
+        Id: '2349082309587230'
+        Title: The Hitchhiker's Guide to the Galaxy
+        Author: Douglas Adams
+    mort:
+      value:
+        Id: '2039854032984'
+        Title: Mort
+        Author: Terry Pratchett
+  schemas:
+    Book:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        finishedAt:
+          type: string
+          format: date-time
+    NewBook:
+      type: object
+      properties:
+        title:
+          type: string
+        author:
+          type: string
+      required:
+        - title
+        - author
+    ListOfBooks:
+      type: array
+      items:
+        $ref: '#/components/schemas/Book'
+    Author:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Distance:
+      type: object
+      properties:
+        id:
+          type: string
+        km:
+          type: number
+        type:
+          $ref: '#/components/schemas/DistanceType'
+    NewDistance:
+      type: object
+      properties:
+        km:
+          type: number
+        type:
+          $ref: '#/components/schemas/DistanceType'
+      required:
+        - km
+        - type
+    DistanceType:
+      type: string
+      enum:
+        - Cycle
+        - Run
+        - Walk
+    ListOfDistances:
+      type: array
+      items:
+        $ref: '#/components/schemas/Distance'
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        status:
+          type: integer
+        instance:
+          type: string
+        extensions:
+          type: object
+      required:
+        - title
+      example:
+        type: https://tools.ietf.org/html/rfc7231#section-6.5.1
+        title: One or more validation errors occurred.
+        status: 400
+        traceId: 2304-328-02385-0235-03825
+    ValidationProblemDetails:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+      type: object
+      properties:
+        errors:
+          type: object
+      example:
+        type: https://tools.ietf.org/html/rfc7231#section-6.5.1
+        title: One or more validation errors occurred.
+        status: 400
+        traceId: 2304-328-02385-0235-03825
+        errors:
+          title:
+            - Title is required
+  responses:
+    '400':
+      description: Bad request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ValidationProblemDetails'
+    201Created:
+      description: Record created
+      headers:
+        Location:
+          $ref: '#/components/headers/Location'
+    400BadRequest:
+      $ref: '#/components/responses/400'
+  headers:
+    Location:
+      description: The absolute URI of the created record
+      schema:
+        type: string
+  securitySchemes:
+    auth0:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://dotlabs.eu.auth0.com/authorize?audience=https%3A%2F%2Fapi.dundat.net
+          scopes:
+            email: User email info
+        clientCredentials:
+          tokenUrl: https://dotlabs.eu.auth0.com/oauth/token

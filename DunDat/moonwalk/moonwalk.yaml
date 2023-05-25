@@ -1,0 +1,165 @@
+openapi: 4.0.0
+info:
+  title: "DunDat API"
+  version: "1.0.0"
+  contact:
+    name: Mark Rendle
+    email: mark@rendlelabs.com
+    url: https://rendlelabs.com/
+tags:
+  - name: Users
+    description: User-related operations
+  - name: Books
+    description: Completed books
+  - name: Authors
+    description: Book authors
+security:
+  - auth0: []
+paths:
+  users:
+    requests:
+      InitializeUser:
+        method: PUT
+        description: Initializes data storage for the user if necessary.
+        tags:
+          - Users
+        contentType: application/json
+        contentSchema:
+          type: object
+        responses:
+          Ok:
+            status: 200
+          BadRequest:
+            status: 400
+  read/books:
+    tags:
+      - Books
+    requests:
+      GetBooks:
+        method: GET
+        description: Get list of completed books
+        responses:
+          Ok:
+            status: 200
+            contentType: application/json
+            contentSchema:
+              $ref: '#/components/schemas/ListOfBooks'
+            examples:
+              ListOfBooks:
+                $ref: '#/components/examples/ListOfBooks'
+      AddBook:
+        method: POST
+        description: Add a completed book
+        contentType: application/json
+        contentSchema:
+          $ref: '#/components/schemas/NewBook'
+          example:
+            title: The Hitchhiker's Guide to the Galaxy
+            author: Douglas Adams
+        responses: 
+          Created:
+            $ref: '#/components/responses/201Created'
+          BadRequest:
+            $ref: '#/components/responses/400BadRequest'
+  read/books/{id}:
+    parameterSchema:
+      properties:
+        id:
+          type: string
+    requests:
+      GetBook:
+        method: Get
+        description: Get details of completed books
+        responses:
+          Ok:
+            status: 200
+            contentType: application/json
+            contentSchema: 
+              $ref: '#/components/schemas/Book'
+            examples: 
+              H2G2:
+                $ref: '#/components/examples/h2g2'
+              Mort:
+                $ref: '#/components/examples/mort'
+          NotFound:
+            status: 404
+            contentType: application/http-problem
+          
+components:
+  examples: 
+    ListOfBooks:
+      value:
+        - Id: '2349082309587230'
+          Title: 'The Hitchhiker''s Guide to the Galaxy'
+          Author: 'Douglas Adams'
+        - Id: '2039854032984'
+          Title: 'Mort'
+          Author: 'Terry Pratchett'
+    h2g2:
+      value:
+        Id: '2349082309587230'
+        Title: 'The Hitchhiker''s Guide to the Galaxy'
+        Author: 'Douglas Adams'
+    mort:
+      value:
+        Id: '2039854032984'
+        Title: 'Mort'
+        Author: 'Terry Pratchett'
+  schemas:
+    Book:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        finishedAt:
+          type: string
+          format: date-time
+    NewBook:
+      type: object
+      properties: 
+        title:
+          type: string
+        author:
+          type: string
+      required:
+        - title
+        - author
+    ListOfBooks:
+      type: array
+      items:
+        $ref: '#/components/schemas/Book'
+    Author:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+  responses: 
+    201Created:
+      status: 201
+      description: Record created
+      headers: 
+        Location:
+          $ref: '#/components/headers/Location'
+    400BadRequest:
+      status: 400
+      description: Request data was invalid
+      contentType: application/http-problem
+  headers: 
+    Location:
+      description: The absolute URI of the created record
+      schema:
+        type: string
+  securitySchemes:
+    auth0:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://dotlabs.eu.auth0.com/authorize?audience=https%3A%2F%2Fapi.dundat.net
+          scopes:
+            email: User email info
+        clientCredentials: 
+          tokenUrl: https://dotlabs.eu.auth0.com/oauth/token

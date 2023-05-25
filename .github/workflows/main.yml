@@ -1,0 +1,23 @@
+name: Build and Deploy pages
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+
+      - name: Install and Build 🔧
+        working-directory: DunDat/OpenAPI
+        run: npx @redocly/cli bundle openapi.yaml -o dist/dundat/openapi.yaml
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: DunDat/OpenAPI/dist
+          branch: gh-pages

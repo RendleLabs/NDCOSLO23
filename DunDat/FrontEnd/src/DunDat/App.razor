@@ -1,0 +1,45 @@
+﻿@using DunDat.Clients
+@inject AccessTokenProvider AccessTokenProvider
+@inject ApiClient ApiClient
+
+<CascadingAuthenticationState>
+  <Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+      <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+        <Authorizing>
+          <p>Determining session state, please wait...</p>
+        </Authorizing>
+        <NotAuthorized>
+          <h1>Log in</h1>
+          <p>You need to <a href="/Login">log in</a> to use this site.</p>
+        </NotAuthorized>
+      </AuthorizeRouteView>
+      <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"/>
+      <FocusOnNavigate RouteData="@routeData" Selector="h1"/>
+    </Found>
+    <NotFound>
+      <PageTitle>Not found</PageTitle>
+      <LayoutView Layout="@typeof(MainLayout)">
+        <p role="alert">Sorry, there's nothing at this address.</p>
+      </LayoutView>
+    </NotFound>
+  </Router>
+</CascadingAuthenticationState>
+
+@code {
+
+  [Parameter]
+  public string? AccessToken { get; set; }
+
+  protected override void OnInitialized()
+  {
+  }
+
+  protected override async Task OnInitializedAsync()
+  {
+    AccessTokenProvider.Token = AccessToken;
+    await ApiClient.InitUserAsync();
+    await base.OnInitializedAsync();
+  }
+
+}

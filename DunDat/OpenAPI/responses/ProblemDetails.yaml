@@ -1,0 +1,21 @@
+type: object
+properties: 
+  type:
+    type: string
+  title:
+    type: string
+  detail:
+    type: string
+  status:
+    type: integer
+  instance:
+    type: string
+  extensions:
+    type: object
+required:
+  - title
+example:
+  type: 'https://tools.ietf.org/html/rfc7231#section-6.5.1'
+  title: 'One or more validation errors occurred.'
+  status: 400
+  traceId: '2304-328-02385-0235-03825'

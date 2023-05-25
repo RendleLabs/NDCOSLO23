@@ -1,0 +1,78 @@
+﻿@using DunDat.Clients
+@using Microsoft.AspNetCore.Components
+@inject ApiClient ApiClient
+
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h2>Books</h2>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-6">
+      <h3>I read a book!</h3>
+      <EditForm Model="NewBook" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator />
+        <div class="form-group mb-3">
+          <label for="Title" class="form-label">Title</label>
+          <InputText @bind-Value="NewBook.Title" class="form-control" id="Title"/>
+        </div>
+        <div class="form-group mb-3">
+          <label for="Author" class="form-label">Author</label>
+          <InputText @bind-Value="NewBook.Author" class="form-control" id="Author"/>
+        </div>
+        <input type="submit" class="btn btn-primary mb-3" value="Add">
+      </EditForm>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-6">
+      <table class="table mt-3">
+        <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Finished On</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var book in Books)
+        {
+          <tr>
+            <td>@book.Title</td>
+            <td>@book.Author.Name</td>
+            <td>@book.FinishedAt.ToString("d")</td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@code {
+
+  public NewBook NewBook { get; } = new();
+  
+  public List<Book> Books { get; } = new();
+
+  protected override async Task OnInitializedAsync()
+  {
+    var books = await ApiClient.GetBooks();
+    Books.AddRange(books);
+  }
+
+  private async Task OnValidSubmit(EditContext arg)
+  {
+    var book = await ApiClient.AddBook(NewBook.Title, NewBook.Author);
+    if (book is not null)
+    {
+      NewBook.Title = null;
+      NewBook.Author = null;
+      
+      Books.Add(book);
+      await InvokeAsync(StateHasChanged);
+    }
+  }
+
+}

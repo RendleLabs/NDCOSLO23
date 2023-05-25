@@ -1,0 +1,3 @@
+description: The absolute URI of the created record
+schema:
+  type: string
